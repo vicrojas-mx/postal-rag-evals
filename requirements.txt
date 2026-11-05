@@ -1,4 +1,4 @@
-langchain-community
-pypdf
-python-dotenv
-pytest
+langchain-community~=0.4.2
+pypdf~=6.21.4
+python-dotenv~=1.2.4
+pytest~=9.2.0
