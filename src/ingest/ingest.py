@@ -14,16 +14,22 @@ def load_handbook(path):
 
     return documents
 
-def print_reader_outline(outline, depth, reader:PdfReader, page_labels):
-    depth += 4
+def list_reader_outline(outline, depth, reader:PdfReader, page_labels, return_list):
     if isinstance(outline, list):
+        depth += 1
         for section in outline:
-           print_reader_outline(section, depth, reader, page_labels)
+           list_reader_outline(section, depth, reader, page_labels, return_list)
     else:
-        spaces= " " * depth
         dest_page = reader.get_destination_page_number(outline)
         printed_label = page_labels[dest_page]
-        print(f"{spaces} {outline.title} {dest_page} {printed_label}")
+        if outline.title and outline.title.strip():
+            return_list.append({
+                "title": outline.title.strip(),
+                "depth": depth,
+                "page_index": dest_page,
+                "page_label": printed_label
+                }
+            )
 
 
 def main():
@@ -32,7 +38,10 @@ def main():
     load_handbook(pdf_path)
 
     reader = PdfReader(pdf_path)
-    print_reader_outline(reader.outline, 0, reader, reader.page_labels)
+    mylist = []
+    list_reader_outline(reader.outline, 0, reader, reader.page_labels, mylist)
+    print(len(mylist))
+    print(mylist[:5])
 
 
 if __name__ == "__main__":
