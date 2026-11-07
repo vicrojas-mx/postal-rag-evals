@@ -31,6 +31,13 @@ def list_reader_outline(outline, depth, reader:PdfReader, page_labels, return_li
                 }
             )
 
+def add_end_pages(sections, total_pages):
+    for index, section in enumerate(sections):
+        if index < len(sections) - 1:
+            section["end_page_index"] = sections[index+1]["page_index"]
+        else:
+            section["end_page_index"] = total_pages-1
+
 
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +49,11 @@ def main():
     list_reader_outline(reader.outline, 0, reader, reader.page_labels, mylist)
     print(len(mylist))
     print(mylist[:5])
+    last_page = len(reader.pages)
+    add_end_pages(sections=mylist, total_pages=last_page)
+    print(mylist)
+
+
 
 
 if __name__ == "__main__":
