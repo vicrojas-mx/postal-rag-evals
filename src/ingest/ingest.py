@@ -46,15 +46,25 @@ def add_section_text(sections, reader: PdfReader):
         
         if index <  len(sections) -1:
             initial_title = " ".join(section["title"].split())
-            start_index = pages_total_content.find(initial_title)
+            start_index = find_title(pages_total_content, initial_title)
             if start_index != -1:
                 ending_title = " ".join(sections[index+1]["title"].split())
-                end_index = pages_total_content.find(ending_title, start_index)
+                end_index = find_title(pages_total_content, ending_title, start_index)
                 section["content"] = pages_total_content[start_index:end_index]
             else:
                 section["content"] = "NO_TITLE_CARNAL"
         else:
             section["content"] = pages_total_content
+
+
+def find_title(text, title, start=0):
+    index = text.find(title, start)
+    if index != -1:
+        return index
+    else:
+        title = title.replace(" ", "", 1)
+        index = text.find(title, start)
+    return index
 
 
 def main():
@@ -66,11 +76,12 @@ def main():
     mylist = []
     list_reader_outline(reader.outline, 0, reader, reader.page_labels, mylist)
     print(len(mylist))
-    print(mylist[:5])
+    #print(mylist[:5])
     last_page = len(reader.pages)
     add_end_pages(sections=mylist, total_pages=last_page)
     add_section_text(mylist, reader)
-    print(mylist[:5])
+    # print("\n@@@@@@@@")
+    # print(mylist[310:315])
 
 
 
