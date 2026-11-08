@@ -38,6 +38,24 @@ def add_end_pages(sections, total_pages):
         else:
             section["end_page_index"] = total_pages-1
 
+def add_section_text(sections, reader: PdfReader):
+    for index, section in enumerate(sections):
+        pages_total_content = ""
+        for context_index in range(section["page_index"], section["end_page_index"]+1):
+            pages_total_content +=  " ".join(reader.get_page(context_index).extract_text().split()) + " "
+        
+        if index <  len(sections) -1:
+            initial_title = " ".join(section["title"].split())
+            start_index = pages_total_content.find(initial_title)
+            if start_index != -1:
+                ending_title = " ".join(sections[index+1]["title"].split())
+                end_index = pages_total_content.find(ending_title, start_index)
+                section["content"] = pages_total_content[start_index:end_index]
+            else:
+                section["content"] = "NO_TITLE_CARNAL"
+        else:
+            section["content"] = pages_total_content
+
 
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,7 +69,9 @@ def main():
     print(mylist[:5])
     last_page = len(reader.pages)
     add_end_pages(sections=mylist, total_pages=last_page)
-    print(mylist)
+    add_section_text(mylist, reader)
+    print(mylist[:5])
+
 
 
 
