@@ -116,8 +116,5 @@ def main()->None:
     print(mylist[310:315])
 
 
-
-
-
 if __name__ == "__main__":
     main()
