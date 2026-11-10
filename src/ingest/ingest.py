@@ -4,6 +4,7 @@ from pypdf.generic import Destination
 from langchain_core.documents import Document
 
 HEADER_MARKERS = ["August 2023", "Handbook PO-209"]
+KEEP_FRONT_MATTER = ["Transmittal Letter"]
 
 def load_handbook(path:str)->list[Document]:
     reader = PdfReader(path)
@@ -78,6 +79,7 @@ def clean_text(text:str) -> str:
     if "intentionally left blank" in text:
         return ""
     else:
+        text = text.replace("\uf0e0", "")
         lines = text.split("\n")
         if len(lines) > 1:
             if marker_exists_in_line(lines[0]): 
@@ -98,6 +100,8 @@ def clean_text(text:str) -> str:
 def marker_exists_in_line(line:str) -> bool:
     return any(marker in line for marker in HEADER_MARKERS)
 
+def filter_front_matter(sections:list[dict]) -> list[dict]:
+    return [section for section in sections if section["page_label"].isdigit() or section["title"] in KEEP_FRONT_MATTER]
 
 def main()->None:
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -112,8 +116,9 @@ def main()->None:
     last_page = len(reader.pages)
     add_end_pages(sections=mylist, total_pages=last_page)
     add_section_text(mylist, reader)
+    list_without_front_matter = filter_front_matter(mylist)
     # print("\n@@@@@@@@")
-    print(mylist[310:315])
+    print(f"Lenght inside the list with the transmittal inside = 319? : {len(list_without_front_matter) == 319}")
 
 
 if __name__ == "__main__":
