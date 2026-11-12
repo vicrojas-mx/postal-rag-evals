@@ -1,4 +1,5 @@
 import os
+import unicodedata
 from pypdf import PdfReader
 from pypdf.generic import Destination
 from langchain_core.documents import Document
@@ -51,18 +52,18 @@ def add_section_text(sections:list[dict], reader: PdfReader) -> None:
         for context_index in range(section["page_index"], section["end_page_index"]+1):
             text = clean_text(reader.get_page(context_index).extract_text())
             pages_total_content +=  " ".join(text.split()) + " "
-        
-        if index <  len(sections) -1:
-            initial_title = " ".join(section["title"].split())
-            start_index = find_title(pages_total_content, initial_title)
-            if start_index != -1:
-                ending_title = " ".join(sections[index+1]["title"].split())
-                end_index = find_title(pages_total_content, ending_title, start_index)
-                section["content"] = pages_total_content[start_index:end_index]
-            else:
-                section["content"] = "NO_TITLE_CARNAL"
+
+        initial_title = " ".join(section["title"].split())
+        start_index = find_title(pages_total_content, initial_title)
+        if start_index == -1:
+            print(f"WARNING: no title found for {initial_title}")
+            section["content"] = ""
+        elif index <  len(sections) -1:
+            ending_title = " ".join(sections[index + 1]["title"].split())
+            end_index = find_title(pages_total_content, ending_title, start_index)
+            section["content"] = pages_total_content[start_index:end_index]
         else:
-            section["content"] = pages_total_content
+            section["content"] = pages_total_content[start_index:]
 
 
 def find_title(text:str, title:str, start:int = 0) -> int:
@@ -79,7 +80,7 @@ def clean_text(text:str) -> str:
     if "intentionally left blank" in text:
         return ""
     else:
-        text = text.replace("\uf0e0", "")
+        text = clean_text_from_unicode(text)
         lines = text.split("\n")
         if len(lines) > 1:
             if marker_exists_in_line(lines[0]): 
@@ -102,6 +103,13 @@ def marker_exists_in_line(line:str) -> bool:
 
 def filter_front_matter(sections:list[dict]) -> list[dict]:
     return [section for section in sections if section["page_label"].isdigit() or section["title"] in KEEP_FRONT_MATTER]
+
+def clean_text_from_unicode(input_text: str) -> str:
+    allowed_whitespace = {"\n", "\r", "\t"}
+    return "".join(
+        ch for ch in input_text
+        if ch in allowed_whitespace or not unicodedata.category(ch).startswith("C")
+    )
 
 def main()->None:
     current_dir = os.path.dirname(os.path.abspath(__file__))
