@@ -111,6 +111,14 @@ def clean_text_from_unicode(input_text: str) -> str:
         if ch in allowed_whitespace or not unicodedata.category(ch).startswith("C")
     )
 
+def add_breadcrumbs(sections: list[dict]) -> None:
+    breadcrumbs_sections: list[str] = []
+    for section in sections:
+        breadcrumbs_sections = breadcrumbs_sections[:section["depth"]-1]
+        breadcrumbs_sections.append(section["title"])
+        section["breadcrumbs"] = " > ".join(breadcrumbs_sections)
+
+
 def main()->None:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     pdf_path = os.path.join(current_dir, "../../data", "po-209_-_2023.pdf")
@@ -124,6 +132,7 @@ def main()->None:
     last_page = len(reader.pages)
     add_end_pages(sections=mylist, total_pages=last_page)
     add_section_text(mylist, reader)
+    add_breadcrumbs(mylist)
     list_without_front_matter = filter_front_matter(mylist)
     # print("\n@@@@@@@@")
     print(f"Lenght inside the list with the transmittal inside = 319? : {len(list_without_front_matter) == 319}")
