@@ -15,5 +15,6 @@ dependencies = {file = ["requirements.txt"]}
 pythonpath = ["src"]
 testpaths = ["tests"]
 filterwarnings = [
-    "ignore::Warning:langsmith.*"
+    "ignore::Warning:langsmith.*",
+    "ignore::DeprecationWarning"
 ]
