@@ -7,17 +7,6 @@ from langchain_core.documents import Document
 HEADER_MARKERS = ["August 2023", "Handbook PO-209"]
 KEEP_FRONT_MATTER = ["Transmittal Letter"]
 
-def load_handbook(path:str)->list[Document]:
-    reader = PdfReader(path)
-    documents = []
-    for pagenum, page in enumerate(reader.pages):        
-        doc = Document(
-            page_content=page.extract_text(),
-            metadata={"source": path, "page" : pagenum}
-            )
-        documents.append(doc)
-    return documents
-
 def list_reader_outline(outline: list | Destination, depth:int, reader:PdfReader, page_labels:list[str], return_list:list[dict]) -> None:
     if isinstance(outline, list):
         depth += 1
@@ -119,24 +108,20 @@ def add_breadcrumbs(sections: list[dict]) -> None:
         section["breadcrumbs"] = " > ".join(breadcrumbs_sections)
 
 
-def main()->None:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    pdf_path = os.path.join(current_dir, "../../data", "po-209_-_2023.pdf")
-    load_handbook(pdf_path)
-
+def build_sections(pdf_path:str) -> list[dict]:
     reader = PdfReader(pdf_path)
     mylist:list[dict] = []
     list_reader_outline(reader.outline, 0, reader, reader.page_labels, mylist)
-    print(len(mylist))
-    print(mylist[:5])
     last_page = len(reader.pages)
     add_end_pages(sections=mylist, total_pages=last_page)
     add_section_text(mylist, reader)
     add_breadcrumbs(mylist)
     list_without_front_matter = filter_front_matter(mylist)
-    # print("\n@@@@@@@@")
-    print(f"Lenght inside the list with the transmittal inside = 319? : {len(list_without_front_matter) == 319}")
+    return list_without_front_matter
+    reader = PdfReader(pdf_path)
 
 
 if __name__ == "__main__":
-    main()
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    pdf_path = os.path.join(current_dir, "../../data", "po-209_-_2023.pdf")
+    list_without_front_matter = build_sections(pdf_path)
