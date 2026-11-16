@@ -1,5 +1,5 @@
 import pytest
-from ingest.ingest import find_title, clean_text, clean_text_from_unicode
+from ingest.ingest import find_title, clean_text, clean_text_from_unicode, add_end_pages, add_breadcrumbs
 
 @pytest.mark.parametrize("text, title, start, expected", [
     pytest.param("1-4.2 Name Tags All employees...", "1-4.2 Name Tags", 0, 0, id="exact"),
@@ -28,3 +28,37 @@ def test_clean_text(text, expected):
 ])
 def test_clean_text_from_unicode(text, expected):
     assert clean_text_from_unicode(text) == expected
+
+@pytest.mark.parametrize("sections, total_pages, expected", [
+    pytest.param([
+        {'title': '2-1 Postal Service Regulations', 'depth': 2, 'page_index': 1, 'page_label': '0'},
+        {'title': '2-2 Misuse of Postal Service Funds', 'depth': 2, 'page_index': 5, 'page_label': '5'},
+        {'title': '2-3 Political Activities', 'depth': 2, 'page_index': 5, 'page_label': '5'}
+    ],  10, [
+        {'title': '2-1 Postal Service Regulations', 'depth': 2, 'page_index': 1, 'page_label': '0', 'end_page_index':5},
+        {'title': '2-2 Misuse of Postal Service Funds', 'depth': 2, 'page_index': 5, 'page_label': '5', 'end_page_index':5},
+        {'title': '2-3 Political Activities', 'depth': 2, 'page_index': 5, 'page_label': '5', 'end_page_index':9}
+    ], id="add_end_pages")
+])
+def test_add_end_pages(sections, total_pages, expected):
+    add_end_pages(sections, total_pages)
+    assert sections == expected
+
+@pytest.mark.parametrize("sections, expected", [
+    pytest.param([
+        {'title': '7 Seven', 'depth': 1, 'page_index': 1, 'page_label': '0'},
+        {'title': '7-1 Seven One', 'depth': 2, 'page_index': 5, 'page_label': '5'},
+        {'title': '7-1.2 Seven One Two', 'depth': 3, 'page_index': 5, 'page_label': '5'},
+        {'title': '7-2 Seven Two', 'depth': 2, 'page_index': 5, 'page_label': '5'},
+        {'title': '8 Eight', 'depth': 1, 'page_index': 9, 'page_label': '9'}
+    ], [
+        {'title': '7 Seven', 'depth': 1, 'page_index': 1, 'page_label': '0', 'breadcrumbs': '7 Seven'},
+        {'title': '7-1 Seven One', 'depth': 2, 'page_index': 5, 'page_label': '5', 'breadcrumbs': '7 Seven > 7-1 Seven One'},
+        {'title': '7-1.2 Seven One Two', 'depth': 3, 'page_index': 5, 'page_label': '5', 'breadcrumbs': '7 Seven > 7-1 Seven One > 7-1.2 Seven One Two'},
+        {'title': '7-2 Seven Two', 'depth': 2, 'page_index': 5, 'page_label': '5', 'breadcrumbs': '7 Seven > 7-2 Seven Two'},
+        {'title': '8 Eight', 'depth': 1, 'page_index': 9, 'page_label': '9', 'breadcrumbs': '8 Eight'}
+    ], id="add_breadcrumbs")
+])
+def test_add_breadcrumbs(sections, expected):
+    add_breadcrumbs(sections)
+    assert sections == expected
