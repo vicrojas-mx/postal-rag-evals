@@ -2,7 +2,6 @@ import os
 import unicodedata
 from pypdf import PdfReader
 from pypdf.generic import Destination
-from langchain_core.documents import Document
 
 HEADER_MARKERS = ["August 2023", "Handbook PO-209"]
 KEEP_FRONT_MATTER = ["Transmittal Letter"]
