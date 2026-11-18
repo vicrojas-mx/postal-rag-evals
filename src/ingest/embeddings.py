@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     embedder = LocalEmbedder("voyageai/voyage-4-nano")
     vectors = embedder.embed_documents(sample_documents_content)
-    query_vector = embedder.embed_query("where do I request more rolls for the self-serve machine?git commit -m '")
+    query_vector = embedder.embed_query("¿dónde pido más rollos pa' la máquina self-serve, carnal?'")
 
     for doc, vector in zip(sample_documents, vectors):
         score = numpy.dot(vector, query_vector)

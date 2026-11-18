@@ -56,6 +56,7 @@ Raw notes for the README. Each decision gives the reason behind it.
 ### Sanity check: semantic, not keyword
 - Query `"how do I get more paper for the kiosk?"` against three chunks: 7-14.2 Ordering Supplies **0.230** vs Name Tags 0.124 / 0.131. It won, but "kiosk" appears in both the query and the chunk, so lexical overlap helped.
 - Harder test, a paraphrase with **zero key-word overlap**: `"where do I request more rolls for the self-serve machine?"` (no "kiosk", "paper", or "supplies"). 7-14.2 still ranked first, and the gap widened: **0.242** vs 0.103 / 0.104. The model mapped "self-serve machine" ≈ "kiosk" and "rolls" ≈ "consumables/supplies".
+- **Spanglish (code-switched) query:** 7-14.2 still ranked first at **0.226** vs 0.098 / 0.101, so the multilingual model bridged Spanish/Spanglish wording to an English chunk. *¿dónde pido más rollos pa' la máquina self-serve, carnal?* This matters because many postal workers speak Spanish, so multilingual queries will get their own eval set.
 - Contrast: my earlier hand-built keyword RAG ([rag-by-hand](https://github.com/vicrojas-mx/rag-by-hand)) missed synonyms like "phone" and "money". Embeddings fix that class of failure.
 - Similarity scores sit close together, so ranking and relative gap matter more than the absolute value.
 
