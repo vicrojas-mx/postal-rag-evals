@@ -45,6 +45,20 @@ Raw notes for the README. Each decision gives the reason behind it.
 - Cost: about 350 chunks × ~200 bytes ≈ 70 KB. DRY applies to logic, not always to data.
 - The embedding (from `page_content`) **finds** the chunk. The metadata **says where it came from** (citations, filtering, evals).
 
+## Embeddings: local model behind an interface
+- Anthropic doesn't offer an embeddings model; its docs point to Voyage AI. For V1 I run **`voyageai/voyage-4-nano`** locally (open-weight, Apache 2.0, about 0.3B params) via `sentence-transformers`, with `truncate_dim=1024`.
+- Why local first: free, offline, no extra vendor account, and CI can run it without secrets. Paid options (Voyage API `voyage-4`, Bedrock Titan) are the next step and get **compared through the evals**, not chosen on faith.
+- `LocalEmbedder` implements LangChain's `Embeddings` interface (`embed_documents` / `embed_query`), so swapping providers or plugging into any vector store is a one-line change.
+- **Asymmetric retrieval:** `encode_query` and `encode_document` add different instruction prefixes, so a question lands near its answer, not near other questions.
+- Only `page_content` is embedded. Metadata travels alongside for citations. That's why the breadcrumb is inside `page_content`: it brings the parent context into the vector.
+- **Accepted risk:** `trust_remote_code=True` runs code from the model's Hugging Face repo locally. Acceptable for a local portfolio project; for production, pin the model revision and review the code.
+
+### Sanity check: semantic, not keyword
+- Query `"how do I get more paper for the kiosk?"` against three chunks: 7-14.2 Ordering Supplies **0.230** vs Name Tags 0.124 / 0.131. It won, but "kiosk" appears in both the query and the chunk, so lexical overlap helped.
+- Harder test, a paraphrase with **zero key-word overlap**: `"where do I request more rolls for the self-serve machine?"` (no "kiosk", "paper", or "supplies"). 7-14.2 still ranked first, and the gap widened: **0.242** vs 0.103 / 0.104. The model mapped "self-serve machine" ≈ "kiosk" and "rolls" ≈ "consumables/supplies".
+- Contrast: my earlier hand-built keyword RAG ([rag-by-hand](https://github.com/vicrojas-mx/rag-by-hand)) missed synonyms like "phone" and "money". Embeddings fix that class of failure.
+- Similarity scores sit close together, so ranking and relative gap matter more than the absolute value.
+
 ## Testing strategy (test pyramid)
 - `tests/unit`: fake inputs, no PDF, about 0.03 s. Covers `find_title`, `clean_text`, Unicode cleaning, end pages, and breadcrumbs (including the stack shrinking to a middle depth).
 - `tests/integration`: real PDF, full pipeline, about 4 s. Covers the section count, Transmittal kept, front matter removed, each chunk starting with its title, no leaks into the next section, no header remnants (regex separates `"August 2023 5"` headers from prose), and breadcrumb shape.
