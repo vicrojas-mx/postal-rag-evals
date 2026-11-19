@@ -14,14 +14,14 @@ class LocalEmbedder(Embeddings):
         if not texts:
             raise ValueError("texts is empty")
 
-        doc_embeddings =  self.model.encode_document(texts)
+        doc_embeddings =  self.model.encode_document(texts, normalize_embeddings=True)
         return doc_embeddings.tolist()
 
     def embed_query(self, text: str) -> list[float]:
         if not text:
             raise ValueError("text is empty")
 
-        query_embeddings = self.model.encode_query(text)
+        query_embeddings = self.model.encode_query(text, normalize_embeddings=True)
         return query_embeddings.tolist()
 
 
