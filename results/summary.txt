@@ -1,0 +1,10 @@
+OVERALL(26)    hit@4 1.0      recall@4 1.0      MRR 0.8910256410256411
+by type:
+   direct(7)    hit@4 1.0      recall@4 1.0      MRR 1.0
+   disambiguation(9)    hit@4 1.0      recall@4 1.0      MRR 0.9444444444444444
+   paraphrase(10)    hit@4 1.0      recall@4 1.0      MRR 0.7666666666666667
+
+by lang:
+   en(17)    hit@4 1.0      recall@4 1.0      MRR 0.9313725490196079
+   es(4)    hit@4 1.0      recall@4 1.0      MRR 0.8333333333333334
+   spanglish(5)    hit@4 1.0      recall@4 1.0      MRR 0.8
