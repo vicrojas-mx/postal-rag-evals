@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
         file_output.write("\n")
         file_output.write("by lang:\n")
-        for lang in LANGS:
-            data_langs = [case for case in data_results if case["tags"][1] == lang]
-            summary = summarize(data_langs)
-            file_output.write(f"   {lang}({len(data_langs)})    hit@4 {summary[0]}      recall@4 {summary[1]}      MRR {summary[2]}\n")
+        for language in LANGS:
+            data_languages = [case for case in data_results if case["tags"][1] == language]
+            summary = summarize(data_languages)
+            file_output.write(f"   {language}({len(data_languages)})    hit@4 {summary[0]}      recall@4 {summary[1]}      MRR {summary[2]}\n")
