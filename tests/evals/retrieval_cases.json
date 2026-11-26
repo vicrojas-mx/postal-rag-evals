@@ -50,5 +50,9 @@
          {"id": "q25", "question": "How should the mobile van clerk keep track of the sales at each stop?",
      "expected": ["19-5"], "tags": ["direct", "en"]},
        {"id": "q26", "question": "On whom relies the responsibility for monitoring inventory levels",
-     "expected": ["11-15.3"], "tags": ["paraphrase", "en"]}
+     "expected": ["11-15.3"], "tags": ["paraphrase", "en"]},
+      {"id": "q27",
+     "question": "Oye carnal, how can I cash an italian money order in the office, the name in the order seems like a morra, but el que quiere el varo es un carnal?",
+     "expected": ["11-14"],
+     "tags": ["paraphrase", "spanglish", "stale_risk"]}
 ]

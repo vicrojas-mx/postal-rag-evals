@@ -7,11 +7,17 @@ from ingest.vectorstore import restore_vector_store, EMBEDDING_MODEL, INDEX_PATH
 from dotenv import load_dotenv
 import anthropic
 
-def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 4)->str:
+def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 4)->dict:
+
+    context_list = []
+    sections = []
 
     results = store.similarity_search_with_score(question, k)
-    context = "\n\n---\n\n".join(f"[Source: {doc.metadata['breadcrumbs']} | p. {doc.metadata['page_label']}] \n\n {doc.page_content}" for doc, _ in results)
+    for doc, _ in results:
+        context_list.append(f"[Source: {doc.metadata['breadcrumbs']} | p. {doc.metadata['page_label']}] \n\n {doc.page_content}")
+        sections.append(doc.metadata["title"].split()[0])
 
+    context = "\n\n---\n\n".join(context_list)
     response = client.beta.messages.create(
         model  = "claude-opus-5-5",
         max_tokens = 16000,
@@ -22,15 +28,26 @@ def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 
         messages=[{"role":"user", "content": f"Context:\n {context}\n\nQuestion:{question}"}]
     )
 
-    content = []
+    content_list = []
     if response.stop_reason == "refusal":
-        content.append(f"Question: {question} was rejected")
+        content_list.append(f"Question: {question} was rejected")
     else:
         for block in response.content:
             if block.type == "text":
-                content.append(block.text)
+                content_list.append(block.text)
 
-    return ("\n".join(content))
+    content = "\n".join(content_list)
+
+    composed_answer = {
+        "text": content,
+        "context": context,
+        "sections": sections,
+        "model": response.model,
+        "usage": response.usage.to_dict(),
+        "stop_reason": response.stop_reason
+    }
+
+    return composed_answer
 
 
 SYSTEM_PROMPT = ("You are a helpful assistant. "

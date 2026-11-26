@@ -1,0 +1,22 @@
+[
+   {"id": "oos01",
+     "question": "¿Cómo hago unas enchiladas rojas bien picosas?",
+     "expected": [],
+     "tags": ["out_of_scope", "es"]},
+    {"id": "oos02",
+     "question": "How much does it cost to mail a letter to Mexico?",
+     "expected": [],
+     "tags": ["out_of_scope", "en"]},
+      {"id": "oos03",
+     "question": "Hey what's up homie, I have my dawg tryna get a pink elephant shipped down to Mexico, he needs a hand moving it out his crib, how do we help?",
+     "expected": [],
+     "tags": ["out_of_scope", "en"]},
+       {"id": "oos04",
+     "question": "Que onda carnal, la flaca sally cumple anios his Thursday, podemos hacer una taquiza en el break room?",
+     "expected": [],
+     "tags": ["out_of_scope", "spanglish"]},
+     {"id": "oos05",
+     "question": "Hay un vehiculo en el estacionamiento, lleva estacionado 7 dias y no sabemos de quien es, llamamos a la policia?",
+     "expected": [],
+     "tags": ["out_of_scope", "es"]}
+]
