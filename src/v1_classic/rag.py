@@ -8,16 +8,7 @@ from dotenv import load_dotenv
 import anthropic
 
 def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 4)->dict:
-
-    context_list = []
-    sections = []
-
-    results = store.similarity_search_with_score(question, k)
-    for doc, _ in results:
-        context_list.append(f"[Source: {doc.metadata['breadcrumbs']} | p. {doc.metadata['page_label']}] \n\n {doc.page_content}")
-        sections.append(doc.metadata["title"].split()[0])
-
-    context = "\n\n---\n\n".join(context_list)
+    context, sections = retrieve_context(question, store, k)
     response = client.beta.messages.create(
         model  = "claude-opus-5-5",
         max_tokens = 16000,
@@ -46,9 +37,20 @@ def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 
         "usage": response.usage.to_dict(),
         "stop_reason": response.stop_reason
     }
-
     return composed_answer
 
+def retrieve_context(question, store, k=4) -> tuple[str, list[str]]:
+    context_list = []
+    sections = []
+
+    results = store.similarity_search_with_score(question, k)
+    for doc, _ in results:
+        context_list.append(f"[Source: {doc.metadata['breadcrumbs']} | p. {doc.metadata['page_label']}] \n\n {doc.page_content}")
+        sections.append(doc.metadata["title"].split()[0])
+
+    context = "\n\n---\n\n".join(context_list)
+
+    return context, sections
 
 SYSTEM_PROMPT = ("You are a helpful assistant. "
                  "Answer the question ONLY using the provided context, Cite the section number (e.g. 'per 7-14.2'), "

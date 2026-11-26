@@ -1,4 +1,10 @@
 import json
+import anthropic
+from ingest.embeddings import LocalEmbedder
+from ingest.vectorstore import restore_vector_store, EMBEDDING_MODEL, INDEX_PATH
+from v1_classic.rag import retrieve_context
+
+from dotenv import load_dotenv
 
 SPANISH_COMMON_WORDS = ["el", "la", "de", "a", "que", "para", "los", "se", "por", "en", "es"]
 ENGLISH_COMMON_WORDS = ["the", "he", "a", "an", "this", "that", "of", "to", "in", "for", "on", "with", "at", "by", "and", "but", "or", "as", "I", "you", "it", "he", "she", "they", "is", "are", "was", "were", "have", "be"]
@@ -92,3 +98,15 @@ def judge_faithful(question, context, answer_text, client)->dict:
         "judge_model": response.model,
         "judge_usage": response.usage.to_dict(),
     }
+
+if __name__ == "__main__":
+    question = "how do I get more paper for the kiosk?"
+    load_dotenv(override=True)
+    client = anthropic.Anthropic()
+    embedder = LocalEmbedder(EMBEDDING_MODEL)
+
+    store = restore_vector_store(INDEX_PATH, embedder=embedder)
+    context, sections = retrieve_context(question, store=store)
+    print(judge_faithful(question, context, "", client))
+    print(judge_faithful(question, context, "I don't know.", client))
+    print(judge_faithful(question, context, "Kiosk supplies are ordered by calling 1-800-PAPER on Fridays.", client))
