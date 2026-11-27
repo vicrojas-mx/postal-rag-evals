@@ -7,10 +7,12 @@ from ingest.vectorstore import restore_vector_store, EMBEDDING_MODEL, INDEX_PATH
 from dotenv import load_dotenv
 import anthropic
 
-def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 4)->dict:
+ANSWER_MODEL = "claude-opus-5-5"
+
+def answer(question:str, client: Anthropic, store: InMemoryVectorStore, answer_model: str, k:int = 4)->dict:
     context, sections = retrieve_context(question, store, k)
     response = client.beta.messages.create(
-        model  = "claude-opus-5-5",
+        model  = answer_model,
         max_tokens = 16000,
         output_config={"effort": "low"},
         betas=["server-side-fallback-2026-07-01"],
@@ -19,18 +21,18 @@ def answer(question:str, client: Anthropic, store: InMemoryVectorStore, k:int = 
         messages=[{"role":"user", "content": f"Context:\n {context}\n\nQuestion:{question}"}]
     )
 
-    content_list = []
+    response_content_list = []
     if response.stop_reason == "refusal":
-        content_list.append(f"Question: {question} was rejected")
+        response_content_list.append(f"Question: {question} was rejected")
     else:
         for block in response.content:
             if block.type == "text":
-                content_list.append(block.text)
+                response_content_list.append(block.text)
 
-    content = "\n".join(content_list)
+    response_content = "\n".join(response_content_list)
 
     composed_answer = {
-        "text": content,
+        "text": response_content,
         "context": context,
         "sections": sections,
         "model": response.model,
@@ -63,4 +65,4 @@ if __name__ == "__main__":
     embedder = LocalEmbedder(EMBEDDING_MODEL)
 
     store = restore_vector_store(INDEX_PATH, embedder=embedder)
-    print(answer(question, client=client, store=store, k=4))
+    print(answer(question, client=client, store=store, answer_model=ANSWER_MODEL, k=4))
