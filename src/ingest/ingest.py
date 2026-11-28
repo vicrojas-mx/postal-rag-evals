@@ -117,7 +117,6 @@ def build_sections(pdf_path:str) -> list[dict]:
     add_breadcrumbs(mylist)
     list_without_front_matter = filter_front_matter(mylist)
     return list_without_front_matter
-    reader = PdfReader(pdf_path)
 
 
 if __name__ == "__main__":
