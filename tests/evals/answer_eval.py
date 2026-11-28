@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 from pathlib import Path
 
 import anthropic
@@ -195,12 +196,10 @@ def run_case(case: dict, client, store, model) -> dict:
     save_line(line, file_name="answer_baseline.jsonl")
     return line
 
-if __name__ == "__main__":
+def calibrate_judge_prompt():
+    now = datetime.now()
+    formatted_time = now.strftime("%Y-%m-%d-%H-%M-%S")
 
-    load_dotenv(override=True)
-    client = anthropic.Anthropic()
-    embedder = LocalEmbedder(EMBEDDING_MODEL)
-    store = restore_vector_store(INDEX_PATH, embedder=embedder)
     baseline_path = Path(__file__).parent.parent.parent / "results" / "answer_baseline.jsonl"
     with open(baseline_path, "r") as f:
         answers = [json.loads(line) for line in f if line.strip()]
@@ -213,20 +212,30 @@ if __name__ == "__main__":
             "question": answer["question"],
             "new_judgement": faithful
         }
-        save_line(new_judge_record, file_name="answer_rejudge_v2.jsonl")
+        save_line(new_judge_record, file_name= "answer_rejudge_" + formatted_time +".jsonl")
 
-    # clear_file("answer_baseline.jsonl")
-    # load_dotenv(override=True)
-    # client = anthropic.Anthropic()
-    # embedder = LocalEmbedder(EMBEDDING_MODEL)
-    # store = restore_vector_store(INDEX_PATH, embedder=embedder)
-    # PILOT_IDS = None #["q01", "q02", "q06", "q27", "oos01"]
-    # filtered_cases = [case for case in load_cases() if PILOT_IDS is None or case["id"] in PILOT_IDS]
-    #
-    # for case in filtered_cases:
-    #     try:
-    #         response = run_case(case, client, store, JUDGE_MODEL)
-    #     except anthropic.APIError as e:
-    #         line_error = {"id": case["id"], "error": e.message}
-    #         save_line(line_error, file_name="answer_errors.jsonl")
-    #         continue
+
+if __name__ == "__main__":
+    calibrate_judge = False
+    load_dotenv(override=True)
+
+    if not calibrate_judge:
+        clear_file("answer_baseline.jsonl")
+
+    client = anthropic.Anthropic()
+    embedder = LocalEmbedder(EMBEDDING_MODEL)
+    store = restore_vector_store(INDEX_PATH, embedder=embedder)
+
+    if calibrate_judge == True:
+        calibrate_judge_prompt()
+    else:
+        PILOT_IDS = None  # ["q01", "q02", "q06", "q27", "oos01"]
+        filtered_cases = [case for case in load_cases() if PILOT_IDS is None or case["id"] in PILOT_IDS]
+
+        for case in filtered_cases:
+            try:
+                response = run_case(case, client, store, JUDGE_MODEL)
+            except anthropic.APIError as e:
+                line_error = {"id": case["id"], "error": e.message}
+                save_line(line_error, file_name="answer_errors.jsonl")
+                continue
